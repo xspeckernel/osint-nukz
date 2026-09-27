@@ -39,10 +39,18 @@ async function checkGravatar(email) {
     .digest("hex");
   const url = `https://www.gravatar.com/avatar/${hash}?d=404`;
   try {
-    const res = await fetch(url, { method: "HEAD" });
-    return { found: res.status === 200, avatarUrl: `${url.split("?")[0]}?s=200&d=identicon` };
-  } catch {
-    return { found: false, avatarUrl: null };
+    const res = await fetch(url, {
+      method: "HEAD",
+      headers: { "User-Agent": "osint-nukz (+https://github.com/)" },
+    });
+    return {
+      found: res.status === 200,
+      avatarUrl: `${url.split("?")[0]}?s=200&d=identicon`,
+      unavailable: false,
+    };
+  } catch (err) {
+    console.error("gravatar error", err);
+    return { found: false, avatarUrl: null, unavailable: true };
   }
 }
 
@@ -50,14 +58,23 @@ async function checkBreaches(email) {
   try {
     const res = await fetch(
       `https://api.xposedornot.com/v1/check-email/${encodeURIComponent(email)}`,
-      { headers: { Accept: "application/json" } }
+      {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "osint-nukz (+https://github.com/)",
+        },
+      }
     );
-    if (res.status === 404) return { count: 0, names: [] };
-    if (!res.ok) return { count: 0, names: [], unavailable: true };
+    if (res.status === 404) return { count: 0, names: [], unavailable: false };
+    if (!res.ok) {
+      console.error("xposedornot status", res.status, await res.text());
+      return { count: 0, names: [], unavailable: true };
+    }
     const data = await res.json();
     const flat = (data.breaches || []).flat().filter(Boolean);
-    return { count: flat.length, names: flat };
-  } catch {
+    return { count: flat.length, names: flat, unavailable: false };
+  } catch (err) {
+    console.error("xposedornot error", err);
     return { count: 0, names: [], unavailable: true };
   }
 }
