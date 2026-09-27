@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #0b0f14;
+  color: #e6f1ea;
+}
+
+.scanline {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(57, 255, 143, 0.03),
+    rgba(57, 255, 143, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
