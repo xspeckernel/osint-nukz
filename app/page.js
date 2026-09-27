@@ -31,11 +31,13 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const [selectedBreach, setSelectedBreach] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
     setResult(null);
+    setSelectedBreach(null);
     if (!email || !email.includes("@")) {
       setError("Digite um e-mail válido.");
       return;
@@ -135,18 +137,58 @@ export default function Page() {
                     <span className="text-red-400 font-semibold">
                       {result.breaches.count}
                     </span>{" "}
-                    vazamento(s) conhecido(s):
+                    vazamento(s) conhecido(s). Clique para ver detalhes:
                   </p>
                   <ul className="flex flex-wrap gap-2">
-                    {result.breaches.names.map((name) => (
-                      <li
-                        key={name}
-                        className="text-xs font-mono bg-red-500/10 text-red-300 border border-red-500/20 rounded-full px-3 py-1"
-                      >
-                        {name}
+                    {result.breaches.breaches.map((b) => (
+                      <li key={b.name}>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedBreach(
+                              selectedBreach?.name === b.name ? null : b
+                            )
+                          }
+                          className={`text-xs font-mono rounded-full px-3 py-1 border transition ${
+                            selectedBreach?.name === b.name
+                              ? "bg-red-500/30 text-red-200 border-red-400"
+                              : "bg-red-500/10 text-red-300 border-red-500/20 hover:bg-red-500/20"
+                          }`}
+                        >
+                          {b.name}
+                        </button>
                       </li>
                     ))}
                   </ul>
+
+                  {selectedBreach && (
+                    <div className="mt-4 bg-black/30 border border-red-500/20 rounded-lg p-4 text-sm">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-gray-400 text-xs mb-2 font-mono">
+                        {selectedBreach.xposedDate && (
+                          <span>Ano: {selectedBreach.xposedDate}</span>
+                        )}
+                        {selectedBreach.domain && (
+                          <span>Domínio: {selectedBreach.domain}</span>
+                        )}
+                        {typeof selectedBreach.xposedRecords === "number" && (
+                          <span>
+                            Registros: {selectedBreach.xposedRecords.toLocaleString("pt-BR")}
+                          </span>
+                        )}
+                        {selectedBreach.passwordRisk && (
+                          <span>Risco de senha: {selectedBreach.passwordRisk}</span>
+                        )}
+                      </div>
+                      {selectedBreach.xposedData && (
+                        <p className="text-gray-400 text-xs mb-2">
+                          Dados expostos: {selectedBreach.xposedData}
+                        </p>
+                      )}
+                      {selectedBreach.description && (
+                        <p className="text-gray-300">{selectedBreach.description}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-nukz-accent">
