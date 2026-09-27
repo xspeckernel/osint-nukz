@@ -57,7 +57,7 @@ async function checkGravatar(email) {
 async function checkBreaches(email) {
   try {
     const res = await fetch(
-      `https://api.xposedornot.com/v1/check-email/${encodeURIComponent(email)}`,
+      `https://api.xposedornot.com/v1/breach-analytics?email=${encodeURIComponent(email)}`,
       {
         headers: {
           Accept: "application/json",
@@ -65,17 +65,26 @@ async function checkBreaches(email) {
         },
       }
     );
-    if (res.status === 404) return { count: 0, names: [], unavailable: false };
     if (!res.ok) {
       console.error("xposedornot status", res.status, await res.text());
-      return { count: 0, names: [], unavailable: true };
+      return { count: 0, breaches: [], unavailable: true };
     }
     const data = await res.json();
-    const flat = (data.breaches || []).flat().filter(Boolean);
-    return { count: flat.length, names: flat, unavailable: false };
+    const details = data?.ExposedBreaches?.breaches_details || [];
+    const breaches = details.map((d) => ({
+      name: d.breach,
+      description: d.details,
+      domain: d.domain,
+      industry: d.industry,
+      passwordRisk: d.password_risk,
+      xposedData: d.xposed_data,
+      xposedDate: d.xposed_date,
+      xposedRecords: d.xposed_records,
+    }));
+    return { count: breaches.length, breaches, unavailable: false };
   } catch (err) {
     console.error("xposedornot error", err);
-    return { count: 0, names: [], unavailable: true };
+    return { count: 0, breaches: [], unavailable: true };
   }
 }
 
