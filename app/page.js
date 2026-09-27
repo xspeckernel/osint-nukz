@@ -123,7 +123,12 @@ export default function Page() {
             </Card>
 
             <Card title="Vazamentos de dados">
-              {result.breaches.count > 0 ? (
+              {result.breaches.unavailable ? (
+                <p className="text-sm text-yellow-400">
+                  Não foi possível consultar agora (serviço indisponível). Tente
+                  de novo em instantes.
+                </p>
+              ) : result.breaches.count > 0 ? (
                 <div>
                   <p className="text-sm text-gray-300 mb-2">
                     Encontrado em{" "}
@@ -155,7 +160,7 @@ export default function Page() {
 
             <Card title="Presença pública (GitHub)">
               {result.github.found ? (
-                <a
+                
                   href={result.github.profileUrl}
                   target="_blank"
                   rel="noreferrer"
